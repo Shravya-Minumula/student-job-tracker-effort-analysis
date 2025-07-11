@@ -1,123 +1,146 @@
-PROJECT TITLE :
- SQL Server–Based Student Job Application and Effort Tracking System
+# SQL SERVER–BASED STUDENT JOB APPLICATION AND EFFORT TRACKING SYSTEM
 
-TECHNOLOGIS USED:
+---
 
-• Database: Microsoft SQL Server 2019
+## Technologies Used :
 
-• Language: T-SQL (Transact-SQL)
+- **Database:** Microsoft SQL Server 2019  
+- **Language:** T-SQL (Transact-SQL)  
+- **Management Tool:** SQL Server Management Studio (SSMS)  
+- **Backup & Recovery:** SQL Server Agent, SQL Server Jobs  
+- **Monitoring:** Dynamic Management Views (DMVs)  
+- **Security:** SQL Server Authentication and Role-Based Access Control  
 
-• Management Tool: SQL Server Management Studio (SSMS)
+## Project Overview :
 
-• Backup & Recovery: SQL Server Agent, SQL Server Jobs
+This project implements a robust and scalable SQL Server database system named **JobAppTrackingDB**, designed to support students, faculty, and placement officers in managing and tracking job application efforts.
 
-• Monitoring: Dynamic Management Views (DMVs)
+It includes powerful features like role-based security, effort metrics calculation, query performance monitoring, and a structured backup/recovery strategy. The solution serves as an effective backend for academic institutions to track student progress throughout the placement journey.
 
-• Security: SQL Server Authentication and Role-Based Access Control
+## Objectives :
 
-PROJECT OVERVIEW :
- This project implements a robust and scalable database system called JobAppTrackingDB, built using
- Microsoft SQL Server. It is designed to help students, career counselors, and faculty track and manage
- student job applications, resume versions, follow-ups, interviews, and overall job-seeking effort. It features
- comprehensive role-based access control, backup and recovery strategies, query performance monitoring,
- and data views for efficient reporting and analysis.
+- Centralized tracking of student job applications and resume versions  
+- Enable faculty and placement officers to monitor student progress  
+- Measure and report student effort over time for evaluations  
+- Apply best practices for indexing, security, performance, and recoverability in SQL Server  
 
-OBJECTIVE:
+## Key Features :
 
-• Enable centralized tracking of student job applications and interactions.
+-*Data Modeling:* 7 well-structured core tables:
+  - `Students`, `ResumeVersions`, `JobApplications`, `FollowUps`, `Interviews`, `EffortMetrics`, `QueryPerformanceLog`  
+- *Data Relationships:* One-to-many relationships between students and their resumes, job applications, interviews, and follow-ups  
+- *Stored Procedures:* Used to generate individual effort summaries and student reports  
+- *Triggers:* Example: `trg_UpdateEffortMetrics` triggers effort metrics update on job application changes  
+- *Views:*  
+  - `vw_ApplicationSummary`: Summarizes job applications  
+  - `vw_StudentEffortSummary`: Tracks student progress for reporting  
+- *Security:* Role-based access for Students and Faculty using logins and user roles  
+- *Monitoring:* Captures and logs top 10 CPU-intensive queries using DMVs  
+- *Index Tuning:* Implements suggested and custom indexes for efficient performance  
+- *Backup/Restore:* Complete backup and recovery system with job scheduling  
 
-• Help placement officers and faculty monitor student progress and support them.
+## Tables Overview :
 
-• Measure and report effort metrics for monthly or term-wise evaluations.
+| Table Name           | Description                                                                 |
+|----------------------|-----------------------------------------------------------------------------|
+| `Students`           | Stores student profile data                                                 |
+| `ResumeVersions`     | Tracks resume revisions per student                                         |
+| `JobApplications`    | Logs applications including company, job title, and status                  |
+| `FollowUps`          | Tracks communication efforts (email, LinkedIn, phone, etc.)                |
+| `Interviews`         | Records stages and outcomes of interviews                                   |
+| `EffortMetrics`      | Summarizes monthly job-seeking activity                                     |
+| `QueryPerformanceLog`| Logs queries consuming the most resources                                   |
 
-• Implement SQL Server best practices including indexing, security, performance monitoring, and backup/recovery.
+## Sample Functional Queries :
 
-KEY FEATURES:
+-- Get a specific student's job-seeking effort summary
+**EXEC sp_GetEffortSummary @StudentID = 1;**
 
-• Data Modeling: 7 core tables: Interviews , Students , ResumeVersions , JobApplications , FollowUps , EffortMetrics , QueryPerformanceLog .
+-- Retrieve overall student effort summary
+**SELECT * FROM vw_StudentEffortSummary;**
 
-• Data Relationships: One-to-many relationships between Students and their resume versions, job applications, follow-ups, and interviews.
+-- View all students' profiles
+**SELECT * FROM Students;**
 
-• Stored Procedures: For generating effort summaries and student-level reports.
+## Security and Roles :
 
-• Triggers: Basic triggers like trg_UpdateEffortMetrics to alert on job application changes.
+- `StudentUser1` to `StudentUser30` ➝ Assigned to `StudentsRole` with **SELECT** (read-only) access.
+- `PlacementHead`, `HOD`, `Dean`, etc. ➝ Assigned to `FacultyRole` with full **CRUD** (Create, Read, Update, Delete) privileges.
+- Role-based access ensures controlled access to sensitive data.
 
-• Views:vw_ApplicationSummary , vw_StudentEffortSummary for easier reporting.
+## Backup and Recovery :
 
-• Security: Role-based access with logins and database users for both students and faculty roles.
+This project follows a structured backup and restore strategy to ensure data safety and recovery.
 
-• Monitoring: Logs top 10 CPU-intensive queries using dynamic management views.
+## Backup Types :
 
-• Index Tuning: Implements missing index suggestions and creates custom indexes for faster querying.
+- **Full Backup**  
+  - Captures a complete snapshot of the database.  
+  - Stored in `.bak` format (e.g., `jobapptracking_full.bak`).  
+  - Performed **daily**.
 
-• Backups: Full, differential, and log backups scheduled using SQL Server Agent jobs.
+- **Differential Backup**  
+  - Captures only the changes since the last full backup.  
+  - Stored in `.bak` format (e.g., `jobapptracking_diff.bak`).  
+  - Scheduled **every 6 hours**.
 
-• Restores: Restores implemented through a structured process using NORECOVERY and RECOVERY clauses to maintain transactional consistency.
+- **Transaction Log Backup**  
+  - Records all transactions since the last log backup.  
+  - Enables point-in-time recovery.  
+  - Stored in `.trn` format (e.g., `jobapptracking_L1.trn`).  
+  - Scheduled **every 30 minutes**.
 
-TABLES OVERVIEW :
+### Restore Process :
 
-• Students : Stores student profile information.
+- **Restore Sequence:**  
+  `Full Backup ➝ Differential Backup ➝ Transaction Log Backups`
 
-• ResumeVersions : Tracks multiple resume versions per student.
+- **Important SQL Options:**  
+  - Use `WITH NORECOVERY` for all intermediate restores.  
+  - Use `WITH RECOVERY` only on the final step to bring the database online.
 
-• JobApplications : Logs each application along with company, title, and status.
+- All backup and restore jobs are automated using **SQL Server Agent**.
 
-• FollowUps : Stores communication records like email, phone calls, or LinkedIn messages.
+## Query Performance Monitoring :
 
-• Interviews : Records interview stages and results.
+This project logs and analyzes high-resource queries to optimize performance.
 
-• EffortMetrics : Summarizes job-seeking activity per month.
+- Uses **Dynamic Management Views (DMVs)**:
+  - `sys.dm_exec_query_stats`
+  - `sys.dm_exec_sql_text`
 
-• QueryPerformanceLog : Captures top resource-consuming queries.
+- Custom stored procedure:
+  - `LogQueryPerformance` logs the top 10 CPU-intensive queries to the `QueryPerformanceLog` table.
 
-SAMPLE FUNCTIONAL QUERIES:
+- Helps identify performance bottlenecks and tune inefficient queries.
 
-• EXEC sp_GetEffortSummary @StudentID = 1 – Shows a student’s job-seeking effort.
+## Index Tuning :
 
-•  SELECT * FROM vw_StudentEffortSummary – Reports all students' application and interview
- metrics.
- 
-•  SELECT * FROM Students – Retrieves basic student data.
+- Missing indexes are identified using DMV analysis.
+- Custom indexes are created to improve query execution time.
 
- SECURITY AND ROLES:
- 
- • StudentUser1 to StudentUser30 ➔ Assigned to StudentsRole with SELECT access only.
- 
-• PlacementHead , HOD , Dean , etc. ➔ Assigned to FacultyRole with CRUD access.
+### Example:
 
-BACKUP AND RECOVERY:
+CREATE INDEX IX_JobApplications_Status 
+ON JobApplications(Status);
 
-• Full Backup: A complete snapshot of the entire database. Performed daily and stored in a .bak file (e.g., jobapptracking_full.bak).
+## Future Scope :
 
-• Differential Backup: Captures only the changes made since the last full backup. Stored in .bak format (e.g., jobapptracking_diff.bak) and scheduled every 6 hours.
+- 🔁 **Integrate Log Shipping and Database Mirroring** to ensure high availability and disaster recovery.
+- 🛰️ **Implement SQL Server Replication** to support a dedicated reporting server for analytics without affecting the live environment.
+- 🖥️ **Develop a frontend application** using technologies like **.NET** or **Power BI** to provide visual dashboards, reports, and interactive tracking of student job application efforts.
 
-• Transaction Log Backup: Records all database transactions since the last log backup, allowing point-in-time recovery. Stored as .trn files (e.g., jobapptracking_L1.trn) and scheduled every 30 minutes.
+## Conclusion :
 
-• Restore Process: Restores follow the correct sequence: Full → Differential → Logs using WITH NORECOVERY and WITH RECOVERY options to maintain consistency and avoid data loss.
+This project showcases key **SQL Server DBA competencies**, including:
 
-• Jobs for all backups are scheduled via SQL Server Agent.
+- Logical database design and normalization  
+- Implementation of stored procedures, triggers, and views  
+- Role-based access control for secure data usage  
+- Query performance optimization using DMVs and indexing  
+- Full backup and recovery strategies for data protection
 
-QUERY PERFORMANCE MONITORING:
+By integrating real-world database practices, this system serves as a scalable solution for **student job application tracking**, offering immense value for **career services departments** or **academic institutions** aiming to monitor and support student career readiness.  
+The project is fully extendable for enterprise-grade deployment and real-time reporting needs.
 
-• Logs top 10 resource-heavy queries using LogQueryPerformance stored procedure.
-
-• Uses system views: sys.dm_exec_query_stats , sys.dm_exec_sql_text .
-
-INDEX TUNING:
-
-• Missing indexes analyzed using system views. 
-
-• Example: IX_JobApplications_Status index improves query efficiency on status filtering.
-
-FUTURE SCOPE:
-
-• Integrate Log Shipping and Mirroring for High Availability.
-
-• Use SQL Replication for reporting server setup.
-
-• Build a frontend application using .NET or Power BI for visualization.
-
- CONCLUSION:
- • This project demonstrates core SQL Server DBA skills including database design, stored procedures, views,
- triggers, security, performance tuning, and backup strategies. It can be expanded for real-world use in
- university career services or student success tracking systems
+---
