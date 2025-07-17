@@ -54,13 +54,19 @@ It includes powerful features like role-based security, effort metrics calculati
 ## Sample Functional Queries :
 
 -- Get a specific student's job-seeking effort summary
-**EXEC sp_GetEffortSummary @StudentID = 1;**
+```sql
+EXEC sp_GetEffortSummary @StudentID = 1;
+```
 
 -- Retrieve overall student effort summary
-**SELECT * FROM vw_StudentEffortSummary;**
+```sql
+SELECT * FROM vw_StudentEffortSummary;
+```
 
 -- View all students' profiles
-**SELECT * FROM Students;**
+```sql
+SELECT * FROM Students;
+```
 
 ## Security and Roles :
 
@@ -120,9 +126,10 @@ This project logs and analyzes high-resource queries to optimize performance.
 - Custom indexes are created to improve query execution time.
 
 ### Example:
-
+```sql
 CREATE INDEX IX_JobApplications_Status 
 ON JobApplications(Status);
+```
 
 ## Future Scope :
 
